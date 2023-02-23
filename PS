@@ -1,4 +1,4 @@
-#####基线表
+
 aa<- read.csv('D:/乳腺癌/终极.csv')
 install.packages("tableone")
 library(tableone)
@@ -18,7 +18,7 @@ aa$Laterality<-factor(aa$Laterality,
                       levels = c(1,2),
                       labels = c("left","right"))
 names(aa)
-for(i in names(aa)[c(7,8,9)]){aa[,i]<-as.factor(aa[,i])}##批量转为因子factor
+for(i in names(aa)[c(7,8,9)]){aa[,i]<-as.factor(aa[,i])}
 aa$Surg<-factor(aa$Surg,
                 levels = c(0,1),
                 labels = c("No","Yes"))
@@ -48,7 +48,7 @@ aa$Status<-factor(aa$Status)
 
 names(aa)
 shapiro.test(aa$Age)
-shapiro.test(aa$Tumor.Size)##正态检验
+shapiro.test(aa$Tumor.Size)
 
 myVars<-c("Age","Race","Marital.status","Grade","Laterality","T","N","M","Surg"
           ,"Radiation","Chemotherapy","Tumor.Size","DX.bone","DX.brain","DX.liver","DX.lung","Status")
@@ -56,27 +56,27 @@ catVars<-c("Race","Marital.status","Grade","Laterality","T","N","M","Surg"
            ,"Radiation","Chemotherapy","DX.bone","DX.brain","DX.liver","DX.lung","Status")
 nonvar <- c("Age","Tumor.Size")
 
-table<- CreateTableOne(vars = myVars,       #条件1
-                       factorVars = catVars, #条件2
-                       strata = "Surg",#这是分组条件，如训练集与验证集
-                       data = aa,  #源数据
-                       addOverall = TRUE)  #增加overall列
+table<- CreateTableOne(vars = myVars,       
+                       factorVars = catVars, 
+                       strata = "Surg",
+                       data = aa,  
+                       addOverall = TRUE)  
 
-table1<- print(table, #构建的table函数（带条件1.2.3）
-               nonnormal = nonvar,#条件4
-               #exact = exactvars,#条件5
-               catDigits = 2,contDigits = 3,pDigits = 4, #附加条件
+table1<- print(table, 
+               nonnormal = nonvar,
+               #exact = exactvars,
+               catDigits = 2,contDigits = 3,pDigits = 4, 
                
-               showAllLevels=TRUE, #显示所有变量
-               quote = FALSE, # 不显示引号
-               noSpaces = TRUE, # #删除用于对齐的空格
-               printToggle = TRUE) #展示输出结果
+               showAllLevels=TRUE, 
+               quote = FALSE, 
+               noSpaces = TRUE,
+               printToggle = TRUE) 
 
 write.csv(table1, file = "D:/乳腺癌/基线表.csv")
 
 
 
-##倾向性评分
+
 install.packages("nonrandom")
 
 install.packages("Matching")
@@ -91,15 +91,15 @@ rm(list = ls())
 names(aa)
 rm(list = ls()) 
 
-#将分布差异变量p<0.05，纳入进行匹配
+
 aa.ps <- pscore(data= aa, formula = Surg~Age+Race+Marital.status+N+Radiation+Chemotherapy
                 +DX.bone+DX.brain+DX.liver+DX.lung)
 plot.pscore(aa.ps,with.legend=T,legend.cex=0.6,
             main = "PS distribution",
             par.1=list(lwd=2),  par.0=list(lwd=2,lty=2),
             xlim=c(-0.5,1))
-aa.ps$data #显示倾向评分数据
-summary(aa.ps) #显示logistic回归模型
+aa.ps$data 
+summary(aa.ps) 
 aa.match <- ps.match(object = aa.ps,
                      who.treated =1,
                      ratio = 1,
@@ -112,33 +112,32 @@ summary(aa.match)
 pair<- aa.match$data.matched
 dim(pair)
 write.csv(pair,file = "D:/乳腺癌/PSM后.csv")
-###比较PSM前后
+
 dist.plot(object=aa.match,
           sel=c("Surg"),
           compare=T,
           lable.match=c("“original data”","”matched sample”"))
-##
+
 rm(list = ls()) 
 names(aa)
 aa <- read.csv("D:/乳腺癌/PSM后.csv")
 for (i in names(aa)[c(3:14,17)]){aa[,i] <- as.factor(aa[,i])}
 table<- CreateTableOne(vars = c("Age","Race","Marital.status","Grade","Laterality","N",
-                                "Radiation","Chemotherapy","Tumor.Size","DX.bone","DX.brain","DX.liver","DX.lung"),       #条件1
+                                "Radiation","Chemotherapy","Tumor.Size","DX.bone","DX.brain","DX.liver","DX.lung"),      
                        factorVars = c("Race","Marital.status","Grade","Laterality","N",
-                                      "Radiation","Chemotherapy","DX.bone","DX.brain","DX.liver","DX.lung"), #条件2
-                       strata = "Surg",#这是分组条件，如训练集与验证集
-                       data = aa,  #源数据
-                       addOverall = TRUE)  #增加overall列
-
+                                      "Radiation","Chemotherapy","DX.bone","DX.brain","DX.liver","DX.lung"),
+                       strata = "Surg",
+                       data = aa,  
+                       addOverall = TRUE) 
 nonvar <- c("Age","Tumor.Size")
-table1<- print(table, #构建的table函数（带条件1.2.3）
-               nonnormal = nonvar,#条件4
-               #exact = exactvars,#条件5
-               catDigits = 2,contDigits = 3,pDigits = 4, #附加条件
+table1<- print(table, 
+               nonnormal = nonvar,
+               #exact = exactvars,
+               catDigits = 2,contDigits = 3,pDigits = 4, 
                
-               showAllLevels=TRUE, #显示所有变量
-               quote = FALSE, # 不显示引号
-               noSpaces = TRUE, # #删除用于对齐的空格
+               showAllLevels=TRUE, 
+               quote = FALSE, 
+               noSpaces = TRUE, 
                printToggle = TRUE) #展示输出结果
 write.csv(table1,file = "D:/乳腺癌/PSM后基线.csv")
 write.csv(table1,file = "D:/乳腺癌/PSM前基线.csv")
@@ -158,141 +157,141 @@ library(survminer)
              #weights=pair$pscore) 
 PS<- survfit(Surv(Time,Status==1)~Surg,data =pair) 
 km2 <- ggsurvplot(PS,
-                  pval = TRUE, # 添加P值
-                  pval.size=5,# 指定p值文本大小的数字，默认为 5。
-                  pval.coord=c(0.1,0.1), # 长度为2的数字向量，指定p值位置x、y，如pval.coord=c(x,y)。
+                  pval = TRUE, 
+                  pval.size=5,
+                  pval.coord=c(0.1,0.1),
                   data = aa, 
-                  conf.int = FALSE, # 显示置信区间
+                  conf.int = FALSE, 
                   xlab = "Time(Months)",
                   palette="lancet",
-                  surv.median.line = "hv",  # 添加中位生存时
-                  legend.title = "", # 设置图例标题，这里设置不显示标题，用空格替代
-                  legend.labs = c("Surg=No", "Surg=Yes"), # 指定图例分组标签
-                  font.legend=15,  # 图例字体
+                  surv.median.line = "hv",  
+                  legend.title = "",
+                  legend.labs = c("Surg=No", "Surg=Yes"), 
+                  font.legend=15,  
                   risk.table = TRUE, 
-                  break.x.by = 12);km2
+                  break.x.by = 12);
 
 summary(PS,time=c(12,36,60))
-######无匹配
-#加载R包
+
+
 rm(list = ls()) 
 names(aa)
 aa <- read.csv("D:/乳腺癌/t34m1（匹配后）.csv")
 for (i in names(aa)[c(3:12,17)]){aa[,i] <- as.factor(aa[,i])}
 library(survival)
 library(survminer)
-#加载数据
+
 rm(list = ls())
 
-#1.无IPTW下的KM曲线
+
 km <- survfit(Surv(Time,Status==1)~Surg,data =aa) 
 km1 <- ggsurvplot(km,
-                  pval = TRUE, # 添加P值
-                  pval.size=5,# 指定p值文本大小的数字，默认为 5。
-                  pval.coord=c(0.1,0.1), # 长度为2的数字向量，指定p值位置x、y，如pval.coord=c(x,y)。
+                  pval = TRUE,
+                  pval.size=5,
+                  pval.coord=c(0.1,0.1), 
                   data = aa, 
-                  conf.int = FALSE, # 显示置信区间
+                  conf.int = FALSE, 
                   xlab = "Time(Months)",
                   palette="lancet",
-                  surv.median.line = "hv",  # 添加中位生存时
-                  legend.title = "", # 设置图例标题，这里设置不显示标题，用空格替代
-                  legend.labs = c("Surg=No", "Surg=Yes"), # 指定图例分组标签
-                  font.legend=15,  # 图例字体
+                  surv.median.line = "hv",
+                  legend.title = "", 
+                  legend.labs = c("Surg=No", "Surg=Yes"),
+                  font.legend=15,  
                   risk.table = TRUE, 
                   break.x.by = 12);km1 
 f1<-survdiff(Surv(Time,Status==1)~Surg,data =aa,rho=0)
 summary(km,time=c(12,36,60))
 
-###亚组分析——————实质是在单因素分析上加东西
+
 aa<- read.csv('D:/乳腺癌/PSM后.csv')
 names(aa)
 aa$rdw<-factor(aa$rdw)
 for (i in names(aa)[c(2:12,14:17,22,23)]){aa[,i] <- as.factor(aa[,i])}
 for (i in names(aa)[c(15,16)]){aa[,i] <- as.factor(aa[,i])}
-glim1<-glm(Status==1~Surg,data=aa,family = binomial)#对于总体人群
+glim1<-glm(Status==1~Surg,data=aa,family = binomial)
 glim1<-glm(Status==1~Surg,data=aa,family = binomial,subset=(groupA=='1'))
 glim1<-glm(Status==1~Surg,data=aa,family = binomial,subset=(groupA=='2'))
 glim1<-glm(Status==1~Surg,data=aa,family = binomial,subset=(group=='1'))
 glim1<-glm(Status==1~Surg,data=aa,family = binomial,subset=(group=='2'))
-#提取所有回归结果放入glm2中
+
 glm2<-summary(glim1)
-#1-计算OR值保留两位小数
+
 OR<-round(exp(coef(glim1)),2);OR
-#2-提取SE
+
 SE<-glm2$coefficients[,2]
-#3-计算CI保留两位小数并合并
+
 CI5<-round(exp(coef(glim1)-1.96*SE),2)
 CI95<-round(exp(coef(glim1)+1.96*SE),2)
 CI<-paste0(CI5,'-',CI95);CI
-#4-提取P值
+
 P<-round(glm2$coefficients[,4],2);P
 
-##数目
+
 aa<- read.csv('D:/乳腺癌/终极.csv')
 names(aa)
 for (i in names(aa)[c(2:12,14:17,21)]){aa[,i] <- as.factor(aa[,i])}
 rm(list = ls()) 
 
 library(tableone)
-myVars<-c("group","groupA")###选择表格要出现的变量
+myVars<-c("group","groupA")
 
-catVars<-c("group","groupA")##分类
-table<- CreateTableOne(vars = myVars,       #条件1
-                       factorVars = catVars, #条件2
-                       strata = "Surg",#这是分组条件，如训练集与验证集
-                       data = aa,  #源数据
-                       addOverall = TRUE)  #增加overall列
-table1<- print(table, #构建的table函数（带条件1.2.3）
-               #nonnormal = nonvar,#条件4
-               #exact = exactvars,#条件5
-               catDigits = 2,contDigits = 3,pDigits = 4, #附加条件
+catVars<-c("group","groupA")
+table<- CreateTableOne(vars = myVars,       
+                       factorVars = catVars, 
+                       strata = "Surg",
+                       data = aa,  
+                       addOverall = TRUE)  
+table1<- print(table, 
+               #nonnormal = nonvar,
+               #exact = exactvars,
+               catDigits = 2,contDigits = 3,pDigits = 4, 
                
-               showAllLevels=TRUE, #显示所有变量
-               quote = FALSE, # 不显示引号
-               noSpaces = TRUE, # #删除用于对齐的空格
-               printToggle = TRUE) #展
-##画亚组森林图
+               showAllLevels=TRUE, 
+               quote = FALSE,
+               noSpaces = TRUE, 
+               printToggle = TRUE) 
+
 library(survival)
 library(plyr)
-##制作table1
+
 library(tableone)
-##制作森林图
+
 install.packages("forestplot")
 library(forestplot)
 rm(list = ls()) 
 aa<- read.csv('D:/乳腺癌/亚组结果.csv',header=FALSE)
-#2-插入行名
-#for(i in 2:8) {aa[, i] = as.character(aa[, i])}#先让变量性质变为character类型
+
+#for(i in 2:8) {aa[, i] = as.character(aa[, i])}
 #aa <- rbind( c("Characteristics","age1","age0",NA,NA,NA,"HR (95%CI)","P Value"),
 # aa[c(1:4),])
-fig<-forestplot(aa[,c(1,2,3,7)], #12378列显示为原数字格式
-                mean=aa[,4],  #第4列为or，变为方块 
+fig<-forestplot(aa[,c(1,2,3,7)], 
+                mean=aa[,4],  
                 lower=aa[,5],  
-                upper=aa[,6], #95%ci
-                zero=1,    # 垂直线       
-                boxsize=0.15,   #方块大小   
-                graph.pos= 4,#图放在第四列
-                hrzl_lines=list("1" = gpar(lty=1,lwd=2),#添加水平线，表格的边框线
+                upper=aa[,6], 
+                zero=1,        
+                boxsize=0.15,    
+                graph.pos= 4,
+                hrzl_lines=list("1" = gpar(lty=1,lwd=2),
                                 "3" = gpar(lty=2),
                                 "10"= gpar(lwd=2,lty=1)),
                 graphwidth = unit(.2,"npc"),
-                # xlab="HR<1,意味着放疗能改善局部区域复发风险",
+               
                 xticks=c(0,1,2) ,
-                #----------------#字体
-                is.summary=c(T,T,T,T,F,F,T,F,F),#T=粗体(每一行)
+           
+                is.summary=c(T,T,T,T,F,F,T,F,F),
                 txt_gp=fpTxtGp(label=gpar(cex=1),
                                ticks=gpar(cex=1.1), 
                                xlab=gpar(cex=1), 
                                title=gpar(cex=2)),
-                #----------------#线条粗细（x轴、置信区间）
+          
                 lwd.zero=2,
                 lwd.ci=2,
                 lwd.xaxis=1, 
                 lty.ci=1,
                 ci.vertices =T,
                 ci.vertices.height=0.2, 
-                clip=c(0,2),#or范围超过3就变为箭头
-                #----------------#行间距、字间距/box形状                 
+                clip=c(0,2),
+                            
                 ineheight=unit(8, 'mm'), 
                 line.margin=unit(8, 'mm'),
                 colgap=unit(6, 'mm'),
@@ -305,90 +304,88 @@ fig<-forestplot(aa[,c(1,2,3,7)], #12378列显示为原数字格式
 plot(fig)
 
 aa$groupA<-factor(aa$groupA)
-###Cox多因素分析
+
 mul_cox<-coxph(Surv(Time,Status==1)~
                  groupA+Race+Marital.status+Grade+Laterality+
                  +T+N+M+Surg+Radiation+Chemotherapy+Tumor.Size+DX.bone+DX.brain+DX.liver+DX.lung,
                data=aa
 );summary(mul_cox)
 
-##提取关键信息制作三线表
-#提取函数信息
+
 cox<-summary(mul_cox) 
 cox$coefficients    
-cox$conf.int  ##提取含有HR、P值、CL95%区间
-#提取HR/95%CI/P值
+cox$conf.int  
+
 mul_HR<- round(cox$coefficients[,2],2) 
 mul_PValue<- round(cox$coefficients[,5],4) 
 mul_CI1<-round(cox$conf.int[,3],2)
 mul_CI2<-round(cox$conf.int[,4],2)
 mul_CI95<-paste(mul_CI1,'-',mul_CI2)
-#整合成表
+
 mul_cox1 <- data.frame("HR" =mul_HR,
                        "CI95" =mul_CI95,
                        "P"=mul_PValue);mul_cox1
 write.csv(mul_cox1, file = "D:/乳腺癌/多因素(匹配前).csv")#####
 
 
-###逆概率加权倾向性评分
+
 rm(list =ls())
 aa<- read.csv('D:/乳腺癌/终极.csv')
 names(aa)
 for (i in names(aa)[c(2:12,14:17,21)]){aa[,i] <- as.factor(aa[,i])}
-#建模并计算PS（倾向性评分）
+
 psModel=glm(Surg~Age+Race+Marital.status+N+Radiation+Chemotherapy
             +DX.bone+DX.brain+DX.liver+DX.lung,
             family=binomial(link="logit"),
             data=aa) 
-#PS
+
 aa$ps=predict(psModel,type="response")
-#根据1/PS和1/1-PS
+
 aa$wt1=1/aa$ps
 aa$wt0=1/(1-aa$ps) 
-#假如患者为治疗组（Yes）用公式1加权，否则用公式2加权
+
 aa$w <- ifelse(aa$Surg=="Yes",aa$wt1,aa$wt0)
-#ITPW后的数据做Table 1
-#1-提取IPTW后的数据
+
 dataIPTW=svydesign(ids=~1,data=aa,weights= ~w) 
-#2-再次构建Table-1
+
 vars<-c("Age","Race","Marital.status","Grade","Laterality","N",
         "Radiation","Chemotherapy","Tumor.Size","DX.bone","DX.brain","DX.liver","DX.lung")
 tab_IPTW=svyCreateTableOne(vars=vars, strata="Surg",data=dataIPTW,test=T)
 
 nonvar <- c("Age","Tumor.Size")
-table1<- print(tab_Unmatched, #构建的table函数（带条件1.2.3）
-               nonnormal = nonvar,#条件4
-               #exact = exactvars,#条件5
-               catDigits = 2,contDigits = 3,pDigits = 4, #附加条件
+table1<- print(tab_Unmatched, 
+               nonnormal = nonvar,
+               #exact = exactvars,
+               catDigits = 2,contDigits = 3,pDigits = 4, 
                
-               showAllLevels=TRUE, #显示所有变量
-               quote = FALSE, # 不显示引号
-               noSpaces = TRUE, # #删除用于对齐的空格
-               printToggle = TRUE) #展示输出结果
-#标准化差结果
+               showAllLevels=TRUE, 
+               quote = FALSE, 
+               noSpaces = TRUE, 
+               printToggle = TRUE)
+
 print(tab_IPTW,showAllLevels=TRUE,smd=TRUE)
-#查看是否有SMD>10%的混杂因素
+
 addmargins(table(ExtractSmd(tab_IPTW) > 0.1))
-#CreateTableOne()函数构建基线表(匹配前)
+
 tab_Unmatched <- CreateTableOne(vars = vars, 
                                 strata = "Surg", 
                                 data = aa, 
                                 test =T)
 
-#展示标准化平均差，SMD
+
 print(tab_Unmatched,showAllLevels=TRUE,smd = TRUE)
-#1.提取两个结果
+
 table1<- cbind(print(tab_Unmatched,printToggle =F,showAllLevels=T,),
                print(tab_IPTW,printToggle =F,showAllLevels=T,))
 
-# 插入一行分组
+
 table1<- rbind(Group=rep(c("Level","No","Yes","P","test"),2),table1)
-#更改列名
+
 colnames(table1) <- c("Level","Unmatched",NA,NA,NA,"Level","IPTW",NA,NA,NA)
-#打印或导出Excel
+
 print(table1, quote = FALSE)
 write.csv(table1, file = "D:/乳腺癌/IPTW前后.csv")
-#2.IPTW下的KM曲线
+
 dd<-datadist(aa)
 options(datadist='dd')
 units(aa$Time) <- "Month" 
@@ -397,17 +394,17 @@ library(survminer)
 km_IPTW<- survfit(Surv(Time,Status==1)~Surg,data =aa,
                   weights=aa$w) 
 km2 <- ggsurvplot(km_IPTW,
-                  pval = TRUE, # 添加P值
-                  pval.size=5,# 指定p值文本大小的数字，默认为 5。
-                  pval.coord=c(0.1,0.1), # 长度为2的数字向量，指定p值位置x、y，如pval.coord=c(x,y)。
+                  pval = TRUE, 
+                  pval.size=5,
+                  pval.coord=c(0.1,0.1), 
                   data = aa, 
-                  conf.int = FALSE, # 显示置信区间
+                  conf.int = FALSE, 
                   xlab = "Time(Months)",
                   palette="lancet",
-                  surv.median.line = "hv",  # 添加中位生存时
-                  legend.title = "", # 设置图例标题，这里设置不显示标题，用空格替代
-                  legend.labs = c("Surg=No", "Surg=Yes"), # 指定图例分组标签
-                  font.legend=15,  # 图例字体
+                  surv.median.line = "hv", 
+                  legend.title = "", 
+                  legend.labs = c("Surg=No", "Surg=Yes"),
+                  font.legend=15,  
                   risk.table = TRUE, 
                   break.x.by = 12);km2
 summary(km_IPTW,time=c(12,36,60))
